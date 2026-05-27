@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Counting Fun</title>
-  <!-- Version: v12 - distinct 5-time finish chime sound -->
+  <!-- Version: v13 - snake reduced by about 40% for mobile display -->
 
   <style>
     /* =========================================================
@@ -116,7 +116,7 @@
     .primary-btn {
       width: 100%;
       min-height: 76px;
-      font-size: 30px;
+      font-size: 18px;
       background: #2d8cff;
       color: white;
       box-shadow: 0 8px 0 #1764b6, 0 15px 26px rgba(45, 140, 255, 0.24);
@@ -301,19 +301,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 760px;
+      min-width: 456px;
       gap: 0;
       user-select: none;
     }
 
     .snake-head {
       position: relative;
-      width: 77px;
-      height: 66px;
+      width: 46px;
+      height: 40px;
       border-radius: 55% 45% 45% 55%;
       background: #7bdc76;
-      border: 5px solid #4ba94a;
-      margin-right: -7px;
+      border: 3px solid #4ba94a;
+      margin-right: -4px;
       box-shadow: inset -6px -6px 0 rgba(30, 120, 50, 0.12);
       z-index: 2;
     }
@@ -322,20 +322,20 @@
     .snake-head::after {
       content: "";
       position: absolute;
-      top: 17px;
-      width: 12px;
-      height: 12px;
+      top: 10px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #1f2d3d;
-      box-shadow: 0 0 0 4px white;
+      box-shadow: 0 0 0 2px white;
     }
 
     .snake-head::before {
-      left: 22px;
+      left: 13px;
     }
 
     .snake-head::after {
-      right: 15px;
+      right: 9px;
     }
 
     .snake-tongue {
@@ -348,27 +348,27 @@
 
     .snake-segment {
       position: relative;
-      width: 63px;
-      height: 52px;
-      margin-left: -4px;
+      width: 38px;
+      height: 31px;
+      margin-left: -2px;
       border-radius: 999px;
       background: #c9f3b5;
-      border: 4px solid #85c970;
-      box-shadow: inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+      border: 2px solid #85c970;
+      box-shadow: inset -2px -2px 0 rgba(48, 122, 50, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 34px;
+      font-size: 20px;
       font-weight: 1000;
       color: transparent;
     }
 
     .snake-segment.current {
-      outline: 5px solid rgba(255, 201, 64, 0.95);
+      outline: 3px solid rgba(255, 201, 64, 0.95);
       box-shadow:
-        0 0 0 5px rgba(255, 244, 188, 0.75),
-        0 0 18px rgba(255, 201, 64, 0.85),
-        inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+        0 0 0 3px rgba(255, 244, 188, 0.75),
+        0 0 10px rgba(255, 201, 64, 0.85),
+        inset -2px -2px 0 rgba(48, 122, 50, 0.12);
       z-index: 3;
       animation: currentSnakePulse 0.75s ease-in-out infinite alternate;
     }
@@ -390,17 +390,17 @@
         outline-color: rgba(255, 201, 64, 0.55);
         transform: scale(1);
         box-shadow:
-          0 0 0 4px rgba(255, 244, 188, 0.45),
-          0 0 8px rgba(255, 201, 64, 0.45),
-          inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+          0 0 0 2px rgba(255, 244, 188, 0.45),
+          0 0 5px rgba(255, 201, 64, 0.45),
+          inset -2px -2px 0 rgba(48, 122, 50, 0.12);
       }
       100% {
         outline-color: rgba(255, 201, 64, 1);
         transform: scale(1.08);
         box-shadow:
-          0 0 0 7px rgba(255, 244, 188, 0.9),
-          0 0 24px rgba(255, 201, 64, 0.95),
-          inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+          0 0 0 4px rgba(255, 244, 188, 0.9),
+          0 0 14px rgba(255, 201, 64, 0.95),
+          inset -2px -2px 0 rgba(48, 122, 50, 0.12);
       }
     }
 
@@ -754,7 +754,7 @@
 
       .speaker-btn {
         width: 52px;
-        height: 52px;
+        height: 31px;
         font-size: 25px;
       }
 
@@ -786,7 +786,7 @@
       }
 
       .feedback {
-        min-height: 52px;
+        min-height: 31px;
         padding: 9px 10px;
       }
 
@@ -795,18 +795,18 @@
       }
 
       .snake {
-        min-width: 665px;
+        min-width: 399px;
       }
 
       .snake-head {
-        width: 66px;
-        height: 56px;
+        width: 40px;
+        height: 34px;
       }
 
       .snake-segment {
-        width: 54px;
-        height: 45px;
-        font-size: 30px;
+        width: 32px;
+        height: 27px;
+        font-size: 18px;
       }
     }
 
