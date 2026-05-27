@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Counting Fun</title>
+  <!-- Version: v12 - distinct 5-time finish chime sound -->
+
+  <style>
+    /* =========================================================
+       1. Base / Reset
+       ========================================================= */
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
+      background: linear-gradient(180deg, #e8f7ff 0%, #fff8e8 100%);
+      color: #1f2d3d;
+      touch-action: manipulation;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 760px;
+      min-height: 100vh;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      flex: 1;
+      animation: fadeIn 0.22s ease-out;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================================================
+       2. Shared Components
+       ========================================================= */
+
+    .main-card {
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 28px;
+      box-shadow: 0 14px 34px rgba(66, 118, 160, 0.16);
+      padding: 22px;
+      width: 100%;
+    }
+
+    .title {
+      font-size: clamp(34px, 8vw, 58px);
+      margin: 18px 0 10px;
+      text-align: center;
+      color: #2367a6;
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      font-size: clamp(18px, 4.2vw, 25px);
+      text-align: center;
+      color: #496478;
+      margin: 0 0 22px;
+      line-height: 1.35;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .level-btn,
+    .next-btn,
+    .speaker-btn {
+      border-radius: 22px;
+      font-weight: 900;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+
+    .primary-btn:active,
+    .secondary-btn:active,
+    .level-btn:active,
+    .next-btn:active,
+    .speaker-btn:active,
+    .answer-btn:active,
+    .picture-card:active {
+      transform: scale(0.97);
+    }
+
+    .primary-btn {
+      width: 100%;
+      min-height: 76px;
+      font-size: 30px;
+      background: #2d8cff;
+      color: white;
+      box-shadow: 0 8px 0 #1764b6, 0 15px 26px rgba(45, 140, 255, 0.24);
+    }
+
+    .secondary-btn {
+      min-height: 58px;
+      padding: 12px 18px;
+      font-size: 19px;
+      background: #eef7ff;
+      color: #2367a6;
+      border: 3px solid #bfe2ff;
+    }
+
+    .section-label {
+      font-size: 21px;
+      font-weight: 900;
+      color: #23485f;
+      margin: 18px 0 10px;
+      text-align: center;
+    }
+
+    .small-note {
+      font-size: 15px;
+      line-height: 1.35;
+      color: #6b7f8f;
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* =========================================================
+       3. Start Screen
+       ========================================================= */
+
+    #startScreen {
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .start-hero {
+      text-align: center;
+      padding: 10px 0 2px;
+      font-size: clamp(52px, 15vw, 96px);
+      line-height: 1;
+      user-select: none;
+    }
+
+    .start-card {
+      margin: auto 0;
+    }
+
+    .start-icons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 36px;
+      margin: 14px 0 26px;
+      user-select: none;
+    }
+
+    /* =========================================================
+       4. Level Selection Screen
+       ========================================================= */
+
+    #levelScreen {
+      gap: 14px;
+      justify-content: flex-start;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .mini-title {
+      font-size: 25px;
+      font-weight: 900;
+      color: #2367a6;
+      margin: 0;
+    }
+
+    .level-group {
+      margin-bottom: 14px;
+    }
+
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .level-btn {
+      min-height: 112px;
+      padding: 14px 10px;
+      background: #ffffff;
+      color: #1f2d3d;
+      border: 4px solid #bfe2ff;
+      box-shadow: 0 7px 0 #90cfff;
+    }
+
+    .level-btn strong {
+      display: block;
+      font-size: clamp(20px, 4.4vw, 28px);
+      color: #2367a6;
+      margin-bottom: 8px;
+    }
+
+    .level-btn span {
+      display: block;
+      font-size: clamp(13px, 3.1vw, 17px);
+      color: #496478;
+      line-height: 1.25;
+    }
+
+    .level-btn.advanced {
+      border-color: #ffd79a;
+      box-shadow: 0 7px 0 #ffc65f;
+    }
+
+    .level-btn.advanced strong {
+      color: #b76500;
+    }
+
+    /* =========================================================
+       5. Gameplay Screen
+       ========================================================= */
+
+    #gameScreen {
+      gap: 12px;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .level-info {
+      font-size: 18px;
+      font-weight: 900;
+      color: #2367a6;
+      line-height: 1.2;
+    }
+
+    .quit-btn {
+      min-height: 44px;
+      padding: 8px 13px;
+      border-radius: 16px;
+      background: #fff0f0;
+      color: #b93b3b;
+      font-weight: 900;
+      font-size: 15px;
+      border: 2px solid #ffd0d0;
+    }
+
+    /* =========================================================
+       6. CSS Cartoon Snake Progress Tracker
+       ========================================================= */
+
+    .snake-wrap {
+      width: 100%;
+      padding: 8px 4px 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .snake-wrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    .snake {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 760px;
+      gap: 0;
+      user-select: none;
+    }
+
+    .snake-head {
+      position: relative;
+      width: 77px;
+      height: 66px;
+      border-radius: 55% 45% 45% 55%;
+      background: #7bdc76;
+      border: 5px solid #4ba94a;
+      margin-right: -7px;
+      box-shadow: inset -6px -6px 0 rgba(30, 120, 50, 0.12);
+      z-index: 2;
+    }
+
+    .snake-head::before,
+    .snake-head::after {
+      content: "";
+      position: absolute;
+      top: 17px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #1f2d3d;
+      box-shadow: 0 0 0 4px white;
+    }
+
+    .snake-head::before {
+      left: 22px;
+    }
+
+    .snake-head::after {
+      right: 15px;
+    }
+
+    .snake-tongue {
+      display: none;
+    }
+
+    .snake-tongue::after {
+      display: none;
+    }
+
+    .snake-segment {
+      position: relative;
+      width: 63px;
+      height: 52px;
+      margin-left: -4px;
+      border-radius: 999px;
+      background: #c9f3b5;
+      border: 4px solid #85c970;
+      box-shadow: inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 1000;
+      color: transparent;
+    }
+
+    .snake-segment.current {
+      outline: 5px solid rgba(255, 201, 64, 0.95);
+      box-shadow:
+        0 0 0 5px rgba(255, 244, 188, 0.75),
+        0 0 18px rgba(255, 201, 64, 0.85),
+        inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+      z-index: 3;
+      animation: currentSnakePulse 0.75s ease-in-out infinite alternate;
+    }
+
+    .snake-segment.correct {
+      background: #d9f3ff;
+      border-color: #59b7ff;
+      color: #1376d4;
+    }
+
+    .snake-segment.wrong {
+      background: #ffe0df;
+      border-color: #ff8d88;
+      color: #e03c35;
+    }
+
+    @keyframes currentSnakePulse {
+      0% {
+        outline-color: rgba(255, 201, 64, 0.55);
+        transform: scale(1);
+        box-shadow:
+          0 0 0 4px rgba(255, 244, 188, 0.45),
+          0 0 8px rgba(255, 201, 64, 0.45),
+          inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+      }
+      100% {
+        outline-color: rgba(255, 201, 64, 1);
+        transform: scale(1.08);
+        box-shadow:
+          0 0 0 7px rgba(255, 244, 188, 0.9),
+          0 0 24px rgba(255, 201, 64, 0.95),
+          inset -4px -4px 0 rgba(48, 122, 50, 0.12);
+      }
+    }
+
+    /* =========================================================
+       7. Question Card
+       ========================================================= */
+
+    .question-card {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .question-top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .speaker-btn {
+      flex: 0 0 auto;
+      width: 58px;
+      height: 58px;
+      font-size: 28px;
+      background: #e8f7ff;
+      color: #2367a6;
+      border: 3px solid #bfe2ff;
+      box-shadow: 0 5px 0 #94ccf2;
+    }
+
+    .question-text {
+      font-size: clamp(22px, 5.8vw, 34px);
+      font-weight: 900;
+      text-align: center;
+      color: #23485f;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .question-number-emphasis {
+      display: inline-block;
+      font-size: 1.35em;
+      font-weight: 1000;
+      text-decoration-line: underline;
+      text-decoration-thickness: 0.12em;
+      text-underline-offset: 0.13em;
+      color: #0b3d63;
+      transform: translateY(-1px);
+    }
+
+    .question-count {
+      text-align: center;
+      color: #6b7f8f;
+      font-size: 16px;
+      font-weight: 800;
+      margin-top: -6px;
+    }
+
+    /* =========================================================
+       8. Object Display
+       ========================================================= */
+
+    .object-display {
+      background: #f7fbff;
+      border: 3px solid #d9efff;
+      border-radius: 24px;
+      min-height: 178px;
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .object-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 12px;
+      width: max-content;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .object-group .object-group {
+      width: max-content;
+      margin-left: 0;
+      margin-right: 0;
+      align-items: flex-start;
+    }
+
+    .object-group.extra-group {
+      margin-top: 7px;
+      padding-top: 9px;
+      border-top: none;
+    }
+
+    .object-row {
+      display: grid;
+      grid-template-columns: repeat(5, clamp(44px, 8.8vw, 68px));
+      justify-items: center;
+      align-items: center;
+      column-gap: clamp(8px, 1.8vw, 16px);
+      row-gap: 10px;
+      width: max-content;
+    }
+
+    .object-icon {
+      font-size: clamp(30px, 7.5vw, 50px);
+      line-height: 1;
+      filter: drop-shadow(0 2px 0 rgba(0,0,0,0.06));
+    }
+
+    .card-object-display {
+      min-height: 90px;
+      padding: 6px 4px;
+      border: none;
+      background: transparent;
+      gap: 3px;
+      width: max-content;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      align-items: flex-start;
+    }
+
+    .card-object-display .object-group {
+      gap: 6px;
+    }
+
+    .card-object-display .object-group.extra-group {
+      margin-top: 3px;
+      padding-top: 4px;
+      border-top: none;
+    }
+
+    .card-object-display .object-row {
+      grid-template-columns: repeat(5, clamp(26px, 5.2vw, 40px));
+      column-gap: clamp(4px, 1vw, 8px);
+      row-gap: 6px;
+    }
+
+    .card-object-display .object-icon {
+      font-size: clamp(18px, 4.8vw, 30px);
+    }
+
+    /* =========================================================
+       9. Answer Area
+       ========================================================= */
+
+    .answers {
+      width: 100%;
+    }
+
+    .number-answers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .answer-btn {
+      min-height: 82px;
+      border-radius: 24px;
+      background: #ffffff;
+      color: #2367a6;
+      font-size: clamp(34px, 11vw, 56px);
+      font-weight: 1000;
+      border: 4px solid #bfe2ff;
+      box-shadow: 0 7px 0 #90cfff;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .answer-btn:disabled,
+    .picture-card:disabled {
+      cursor: default;
+    }
+
+    .answer-btn.dimmed,
+    .picture-card.dimmed {
+      opacity: 0.45;
+      transform: scale(0.98);
+    }
+
+    .answer-btn.correct-choice,
+    .picture-card.correct-choice {
+      opacity: 1;
+      border-color: #2d8cff;
+      background: #eef8ff;
+      transform: scale(1.06);
+      box-shadow: 0 0 0 6px rgba(45, 140, 255, 0.18), 0 8px 0 #5ab8ff;
+      z-index: 2;
+    }
+
+    .picture-answers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .picture-card {
+      min-height: 160px;
+      border-radius: 24px;
+      background: white;
+      border: 4px solid #bfe2ff;
+      box-shadow: 0 7px 0 #90cfff;
+      padding: 10px 10px;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+      overflow: hidden;
+    }
+
+    .picture-card:nth-child(3) {
+      grid-column: 1 / span 2;
+      justify-self: center;
+      width: calc(50% - 6px);
+      min-width: 150px;
+    }
+
+    /* =========================================================
+       10. Feedback and Next
+       ========================================================= */
+
+    .feedback {
+      min-height: 58px;
+      border-radius: 22px;
+      padding: 12px 14px;
+      font-size: clamp(22px, 5.8vw, 32px);
+      font-weight: 1000;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+
+    .feedback.blank {
+      background: transparent;
+      color: transparent;
+    }
+
+    .feedback.correct {
+      background: #e8f7ff;
+      color: #1376d4;
+      border: 3px solid #9ad6ff;
+      animation: popIn 0.22s ease-out;
+    }
+
+    .feedback.wrong {
+      background: #fff0ef;
+      color: #e03c35;
+      border: 3px solid #ffb7b3;
+      animation: popIn 0.22s ease-out;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .next-btn {
+      min-height: 70px;
+      font-size: 27px;
+      background: #2d8cff;
+      color: white;
+      box-shadow: 0 7px 0 #1764b6, 0 14px 24px rgba(45, 140, 255, 0.22);
+      width: 100%;
+    }
+
+    /* =========================================================
+       11. Result Screen
+       ========================================================= */
+
+    #resultScreen {
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .result-card {
+      text-align: center;
+      margin: auto 0;
+    }
+
+    .result-emoji {
+      font-size: clamp(58px, 15vw, 96px);
+      margin-bottom: 8px;
+      user-select: none;
+    }
+
+    .result-title {
+      font-size: clamp(32px, 8vw, 54px);
+      color: #2367a6;
+      margin: 8px 0;
+      line-height: 1.1;
+    }
+
+    .score-box {
+      margin: 20px auto;
+      padding: 16px;
+      border-radius: 24px;
+      background: #f7fbff;
+      border: 3px solid #d9efff;
+      font-size: clamp(28px, 7vw, 42px);
+      font-weight: 1000;
+      color: #23485f;
+    }
+
+    .result-actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    /* =========================================================
+       12. Responsive Adjustments
+       ========================================================= */
+
+    @media (max-width: 460px) {
+      .app {
+        padding: 10px;
+      }
+
+      .main-card {
+        border-radius: 24px;
+        padding: 16px;
+      }
+
+      .level-grid {
+        gap: 9px;
+      }
+
+      .level-btn {
+        min-height: 96px;
+        padding: 11px 6px;
+      }
+
+      .question-card {
+        padding: 12px;
+        gap: 10px;
+      }
+
+      .question-top {
+        gap: 8px;
+      }
+
+      .speaker-btn {
+        width: 52px;
+        height: 52px;
+        font-size: 25px;
+      }
+
+      .object-display {
+        min-height: 160px;
+        padding: 12px 7px;
+      }
+
+      .number-answers {
+        gap: 8px;
+      }
+
+      .answer-btn {
+        min-height: 74px;
+        border-radius: 20px;
+      }
+
+      .picture-answers {
+        gap: 8px;
+      }
+
+      .picture-card {
+        min-height: 116px;
+        padding: 8px 4px;
+      }
+
+      .picture-card:nth-child(3) {
+        min-width: 136px;
+      }
+
+      .feedback {
+        min-height: 52px;
+        padding: 9px 10px;
+      }
+
+      .next-btn {
+        min-height: 64px;
+      }
+
+      .snake {
+        min-width: 665px;
+      }
+
+      .snake-head {
+        width: 66px;
+        height: 56px;
+      }
+
+      .snake-segment {
+        width: 54px;
+        height: 45px;
+        font-size: 30px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .level-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .level-btn {
+        min-height: 74px;
+      }
+
+      .picture-card:nth-child(3) {
+        width: 60%;
+      }
+
+      .question-text {
+        font-size: 21px;
+      }
+    }
+
+    @media (min-height: 820px) {
+      .question-card {
+        gap: 16px;
+      }
+
+      .object-display {
+        min-height: 168px;
+      }
+
+      .picture-card {
+        min-height: 144px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <!-- =======================================================
+         START SCREEN
+         ======================================================= -->
+    <section id="startScreen" class="screen active">
+      <div class="main-card start-card">
+        <div class="start-hero">🔢</div>
+        <h1 class="title">Counting Fun</h1>
+        <p class="subtitle">Look, count, and tap the answer!</p>
+        <div class="start-icons" aria-hidden="true">
+          <span>🍎</span><span>🚌</span><span>🍓</span><span>🚕</span><span>🍉</span>
+        </div>
+        <button id="startBtn" class="primary-btn">Start</button>
+        <p class="small-note">A calm counting game for little learners.</p>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         LEVEL SELECTION SCREEN
+         ======================================================= -->
+    <section id="levelScreen" class="screen">
+      <div class="top-bar">
+        <h2 class="mini-title">Choose a Level</h2>
+        <button id="backToStartBtn" class="secondary-btn">Home</button>
+      </div>
+
+      <div class="main-card">
+        <div class="level-group">
+          <div class="section-label">Numbers 1–10</div>
+          <div class="level-grid">
+            <button class="level-btn" data-level="1">
+              <strong>Level 1</strong>
+              <span>Picture → Number</span>
+            </button>
+            <button class="level-btn" data-level="2">
+              <strong>Level 2</strong>
+              <span>Number → Picture</span>
+            </button>
+            <button class="level-btn" data-level="3">
+              <strong>Level 3</strong>
+              <span>Mixed</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="level-group">
+          <div class="section-label">Numbers 11–20</div>
+          <div class="level-grid">
+            <button class="level-btn advanced" data-level="4">
+              <strong>Level 4</strong>
+              <span>Picture → Number</span>
+            </button>
+            <button class="level-btn advanced" data-level="5">
+              <strong>Level 5</strong>
+              <span>Number → Picture</span>
+            </button>
+            <button class="level-btn advanced" data-level="6">
+              <strong>Level 6</strong>
+              <span>Mixed</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         GAMEPLAY SCREEN
+         ======================================================= -->
+    <section id="gameScreen" class="screen">
+      <div class="game-header">
+        <div id="levelInfo" class="level-info">Level</div>
+        <button id="quitBtn" class="quit-btn">Levels</button>
+      </div>
+
+      <div class="snake-wrap" aria-label="Progress tracker">
+        <div id="snake" class="snake"></div>
+      </div>
+
+      <div class="main-card question-card">
+        <div class="question-top">
+          <button id="speakerBtn" class="speaker-btn" aria-label="Read question aloud">🔊</button>
+          <p id="questionText" class="question-text">Question</p>
+        </div>
+
+        <div id="questionCount" class="question-count">Question 1 of 10</div>
+
+        <div id="displayArea"></div>
+
+        <div id="answers" class="answers"></div>
+
+        <div id="feedback" class="feedback blank" aria-live="polite">Feedback</div>
+
+        <button id="nextBtn" class="next-btn hidden">Next</button>
+      </div>
+    </section>
+
+    <!-- =======================================================
+         RESULT SCREEN
+         ======================================================= -->
+    <section id="resultScreen" class="screen">
+      <div class="main-card result-card">
+        <div id="resultEmoji" class="result-emoji">🌟</div>
+        <h2 id="resultTitle" class="result-title">Great job!</h2>
+        <div id="scoreBox" class="score-box">You got 0 / 10</div>
+        <p id="resultMessage" class="subtitle">You finished the level.</p>
+        <div class="result-actions">
+          <button id="replayBtn" class="primary-btn">Play Again</button>
+          <button id="chooseLevelBtn" class="secondary-btn">Choose Level</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* =========================================================
+       1. GAME CONFIG
+       ========================================================= */
+
+    const GAME_CONFIG = {
+      questionsPerLevel: 10,
+      answerChoicesCount: 3,
+      autoReadQuestion: true,
+      enableSoundEffects: true,
+      speechRate: 0.82,
+      speechPitch: 1.08,
+      autoReadDelayMs: 380
+    };
+
+    const OBJECTS = [
+      { key: "apple", singular: "apple", plural: "apples", icon: "🍎", category: "fruit" },
+      { key: "banana", singular: "banana", plural: "bananas", icon: "🍌", category: "fruit" },
+      { key: "orange", singular: "orange", plural: "oranges", icon: "🍊", category: "fruit" },
+      { key: "strawberry", singular: "strawberry", plural: "strawberries", icon: "🍓", category: "fruit" },
+      { key: "watermelon", singular: "watermelon", plural: "watermelons", icon: "🍉", category: "fruit" },
+      { key: "bus", singular: "bus", plural: "buses", icon: "🚌", category: "vehicle" },
+      { key: "taxi", singular: "taxi", plural: "taxis", icon: "🚕", category: "vehicle" },
+      { key: "car", singular: "car", plural: "cars", icon: "🚗", category: "vehicle" },
+      { key: "truck", singular: "truck", plural: "trucks", icon: "🚚", category: "vehicle" },
+      { key: "train", singular: "train", plural: "trains", icon: "🚆", category: "vehicle" }
+    ];
+
+    const LEVELS = {
+      1: {
+        title: "Level 1",
+        label: "Picture → Number",
+        rangeLabel: "Numbers 1–10",
+        mode: "pictureToNumber",
+        min: 1,
+        max: 10
+      },
+      2: {
+        title: "Level 2",
+        label: "Number → Picture",
+        rangeLabel: "Numbers 1–10",
+        mode: "numberToPicture",
+        min: 1,
+        max: 10
+      },
+      3: {
+        title: "Level 3",
+        label: "Mixed",
+        rangeLabel: "Numbers 1–10",
+        mode: "mixed",
+        min: 1,
+        max: 10
+      },
+      4: {
+        title: "Level 4",
+        label: "Picture → Number",
+        rangeLabel: "Numbers 11–20",
+        mode: "pictureToNumber",
+        min: 11,
+        max: 20
+      },
+      5: {
+        title: "Level 5",
+        label: "Number → Picture",
+        rangeLabel: "Numbers 11–20",
+        mode: "numberToPicture",
+        min: 11,
+        max: 20
+      },
+      6: {
+        title: "Level 6",
+        label: "Mixed",
+        rangeLabel: "Numbers 11–20",
+        mode: "mixed",
+        min: 11,
+        max: 20
+      }
+    };
+
+    const NUMBER_WORDS = {
+      1: "one",
+      2: "two",
+      3: "three",
+      4: "four",
+      5: "five",
+      6: "six",
+      7: "seven",
+      8: "eight",
+      9: "nine",
+      10: "ten",
+      11: "eleven",
+      12: "twelve",
+      13: "thirteen",
+      14: "fourteen",
+      15: "fifteen",
+      16: "sixteen",
+      17: "seventeen",
+      18: "eighteen",
+      19: "nineteen",
+      20: "twenty"
+    };
+
+    /* =========================================================
+       2. GAME STATE
+       ========================================================= */
+
+    const state = {
+      currentLevelId: null,
+      currentLevel: null,
+      questions: [],
+      currentQuestionIndex: 0,
+      score: 0,
+      answered: false,
+      snakeResults: [],
+      audioContext: null,
+      speechUnlocked: false,
+      autoAdvanceTimer: null
+    };
+
+    /* =========================================================
+       3. DOM REFERENCES
+       ========================================================= */
+
+    const screens = {
+      start: document.getElementById("startScreen"),
+      level: document.getElementById("levelScreen"),
+      game: document.getElementById("gameScreen"),
+      result: document.getElementById("resultScreen")
+    };
+
+    const startBtn = document.getElementById("startBtn");
+    const backToStartBtn = document.getElementById("backToStartBtn");
+    const quitBtn = document.getElementById("quitBtn");
+    const levelButtons = Array.from(document.querySelectorAll(".level-btn"));
+
+    const levelInfo = document.getElementById("levelInfo");
+    const snakeEl = document.getElementById("snake");
+    const questionText = document.getElementById("questionText");
+    const questionCount = document.getElementById("questionCount");
+    const speakerBtn = document.getElementById("speakerBtn");
+    const displayArea = document.getElementById("displayArea");
+    const answersEl = document.getElementById("answers");
+    const feedbackEl = document.getElementById("feedback");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const resultEmoji = document.getElementById("resultEmoji");
+    const resultTitle = document.getElementById("resultTitle");
+    const scoreBox = document.getElementById("scoreBox");
+    const resultMessage = document.getElementById("resultMessage");
+    const replayBtn = document.getElementById("replayBtn");
+    const chooseLevelBtn = document.getElementById("chooseLevelBtn");
+
+    /* =========================================================
+       4. EVENT LISTENERS
+       ========================================================= */
+
+    startBtn.addEventListener("click", () => {
+      unlockAudio();
+      showScreen("level");
+    });
+
+    backToStartBtn.addEventListener("click", () => {
+      stopSpeech();
+      showScreen("start");
+    });
+
+    quitBtn.addEventListener("click", () => {
+      stopSpeech();
+      showScreen("level");
+    });
+
+    levelButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        unlockAudio();
+        const levelId = Number(btn.dataset.level);
+        startLevel(levelId);
+      });
+    });
+
+    speakerBtn.addEventListener("click", () => {
+      unlockAudio();
+      const currentQuestion = getCurrentQuestion();
+      if (currentQuestion) speak(currentQuestion.speechText);
+    });
+
+    nextBtn.addEventListener("click", () => {
+      playSound("page");
+      goToNextQuestion();
+    });
+
+    replayBtn.addEventListener("click", () => {
+      if (state.currentLevelId) startLevel(state.currentLevelId);
+    });
+
+    chooseLevelBtn.addEventListener("click", () => {
+      showScreen("level");
+    });
+
+    function clearAutoAdvanceTimer() {
+      if (state.autoAdvanceTimer) {
+        clearTimeout(state.autoAdvanceTimer);
+        state.autoAdvanceTimer = null;
+      }
+    }
+
+    /* =========================================================
+       5. SCREEN MANAGEMENT
+       ========================================================= */
+
+    function showScreen(screenName) {
+      clearAutoAdvanceTimer();
+      Object.values(screens).forEach((screen) => screen.classList.remove("active"));
+      screens[screenName].classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    /* =========================================================
+       6. LEVEL AND QUESTION GENERATION
+       ========================================================= */
+
+    function startLevel(levelId) {
+      clearAutoAdvanceTimer();
+      const level = LEVELS[levelId];
+      if (!level) return;
+
+      state.currentLevelId = levelId;
+      state.currentLevel = level;
+      state.questions = generateQuestions(level);
+      state.currentQuestionIndex = 0;
+      state.score = 0;
+      state.answered = false;
+      state.snakeResults = Array(GAME_CONFIG.questionsPerLevel).fill(null);
+
+      showScreen("game");
+      renderSnake();
+      renderQuestion();
+    }
+
+    function generateQuestions(level) {
+      const quantities = range(level.min, level.max);
+      const shuffledQuantities = shuffleArray(quantities);
+      let questionModes = [];
+
+      if (level.mode === "mixed") {
+        questionModes = [
+          ...Array(5).fill("pictureToNumber"),
+          ...Array(5).fill("numberToPicture")
+        ];
+        questionModes = shuffleArray(questionModes);
+      } else {
+        questionModes = Array(GAME_CONFIG.questionsPerLevel).fill(level.mode);
+      }
+
+      return shuffledQuantities.map((quantity, index) => {
+        const object = getRandomObject();
+        const mode = questionModes[index];
+        return createQuestion({ quantity, object, mode, min: level.min, max: level.max });
+      });
+    }
+
+    function createQuestion({ quantity, object, mode, min, max }) {
+      const objectName = quantity === 1 ? object.singular : object.plural;
+      const numberWord = NUMBER_WORDS[quantity] || String(quantity);
+
+      if (mode === "pictureToNumber") {
+        return {
+          mode,
+          quantity,
+          object,
+          prompt: `How many ${object.plural} are there?`,
+          speechText: `How many ${object.plural} are there?`,
+          choices: generateNearbyChoices(quantity, min, max)
+        };
+      }
+
+      return {
+        mode,
+        quantity,
+        object,
+        prompt: `Tap the picture with ${quantity} ${objectName}.`,
+        speechText: `Tap the picture with ${numberWord} ${objectName}.`,
+        choices: generateNearbyChoices(quantity, min, max)
+      };
+    }
+
+    function generateNearbyChoices(answer, min, max) {
+      const choices = new Set([answer]);
+
+      let offset = 1;
+      while (choices.size < GAME_CONFIG.answerChoicesCount) {
+        const lower = answer - offset;
+        const upper = answer + offset;
+
+        if (lower >= min) choices.add(lower);
+        if (choices.size >= GAME_CONFIG.answerChoicesCount) break;
+
+        if (upper <= max) choices.add(upper);
+        if (choices.size >= GAME_CONFIG.answerChoicesCount) break;
+
+        offset++;
+      }
+
+      return shuffleArray(Array.from(choices));
+    }
+
+    /* =========================================================
+       7. QUESTION RENDERING
+       ========================================================= */
+
+    function getQuestionDisplayHtml(question) {
+      if (!question) return "";
+
+      if (question.mode === "numberToPicture") {
+        const objectName = question.quantity === 1 ? question.object.singular : question.object.plural;
+        return `Tap the picture with <span class="question-number-emphasis">${question.quantity}</span> ${objectName}.`;
+      }
+
+      return question.prompt;
+    }
+
+    function renderQuestion() {
+      clearAutoAdvanceTimer();
+      const question = getCurrentQuestion();
+      if (!question) return;
+
+      state.answered = false;
+
+      levelInfo.innerHTML = `${state.currentLevel.title}<br><span>${state.currentLevel.rangeLabel}</span>`;
+      questionText.innerHTML = getQuestionDisplayHtml(question);
+      questionCount.textContent = `Question ${state.currentQuestionIndex + 1} of ${GAME_CONFIG.questionsPerLevel}`;
+
+      feedbackEl.className = "feedback blank";
+      feedbackEl.textContent = "";
+      nextBtn.classList.add("hidden");
+
+      displayArea.innerHTML = "";
+      answersEl.innerHTML = "";
+      answersEl.className = "answers";
+
+      renderSnake();
+
+      if (question.mode === "pictureToNumber") {
+        renderPictureToNumber(question);
+      } else {
+        renderNumberToPicture(question);
+      }
+
+      if (GAME_CONFIG.autoReadQuestion) {
+        stopSpeech();
+        setTimeout(() => {
+          const latestQuestion = getCurrentQuestion();
+          if (latestQuestion && latestQuestion === question && screens.game.classList.contains("active")) {
+            speak(latestQuestion.speechText);
+          }
+        }, GAME_CONFIG.autoReadDelayMs);
+      }
+    }
+
+    function renderPictureToNumber(question) {
+      const objectDisplay = document.createElement("div");
+      objectDisplay.className = "object-display";
+      objectDisplay.appendChild(createObjectDisplay(question.object.icon, question.quantity, false));
+      displayArea.appendChild(objectDisplay);
+
+      answersEl.classList.add("number-answers");
+      question.choices.forEach((choice) => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = choice;
+        btn.dataset.value = choice;
+        btn.addEventListener("click", () => handleAnswer(choice, btn));
+        answersEl.appendChild(btn);
+      });
+    }
+
+    function renderNumberToPicture(question) {
+      answersEl.classList.add("picture-answers");
+
+      question.choices.forEach((choice) => {
+        const card = document.createElement("button");
+        card.className = "picture-card";
+        card.dataset.value = choice;
+        card.setAttribute("aria-label", `${choice} ${choice === 1 ? question.object.singular : question.object.plural}`);
+        card.appendChild(createObjectDisplay(question.object.icon, choice, true));
+        card.addEventListener("click", () => handleAnswer(choice, card));
+        answersEl.appendChild(card);
+      });
+    }
+
+    /* =========================================================
+       8. OBJECT DISPLAY: 5+MORE AND 10+MORE STRUCTURE
+       ========================================================= */
+
+    function createObjectDisplay(icon, quantity, compact) {
+      const wrapper = document.createElement("div");
+      wrapper.className = compact ? "object-display card-object-display" : "object-group";
+
+      if (quantity <= 10) {
+        const group = document.createElement("div");
+        group.className = "object-group";
+        appendRowsToGroup(group, icon, quantity);
+        wrapper.appendChild(group);
+        return wrapper;
+      }
+
+      const tenGroup = document.createElement("div");
+      tenGroup.className = "object-group";
+      appendRowsToGroup(tenGroup, icon, 10);
+
+      const extraGroup = document.createElement("div");
+      extraGroup.className = "object-group extra-group";
+      appendRowsToGroup(extraGroup, icon, quantity - 10);
+
+      wrapper.appendChild(tenGroup);
+      wrapper.appendChild(extraGroup);
+      return wrapper;
+    }
+
+    function appendRowsToGroup(groupEl, icon, quantity) {
+      if (quantity <= 0) return;
+
+      const firstRowCount = Math.min(5, quantity);
+      const secondRowCount = quantity > 5 ? quantity - 5 : 0;
+
+      groupEl.appendChild(createObjectRow(icon, firstRowCount));
+
+      if (secondRowCount > 0) {
+        groupEl.appendChild(createObjectRow(icon, secondRowCount));
+      }
+    }
+
+    function createObjectRow(icon, count) {
+      const row = document.createElement("div");
+      row.className = "object-row";
+
+      for (let i = 0; i < count; i++) {
+        const span = document.createElement("span");
+        span.className = "object-icon";
+        span.textContent = icon;
+        row.appendChild(span);
+      }
+
+      return row;
+    }
+
+    /* =========================================================
+       9. ANSWER HANDLING
+       ========================================================= */
+
+    function handleAnswer(selectedValue, selectedEl) {
+      if (state.answered) return;
+
+      const question = getCurrentQuestion();
+      if (!question) return;
+
+      state.answered = true;
+      stopSpeech();
+
+      const isCorrect = selectedValue === question.quantity;
+
+      disableAllChoices();
+      markCorrectChoice(question.quantity);
+
+      if (isCorrect) {
+        state.score += 1;
+        state.snakeResults[state.currentQuestionIndex] = "correct";
+        feedbackEl.className = "feedback correct";
+        feedbackEl.textContent = "✓ Great job!";
+        playSound("correct");
+      } else {
+        state.snakeResults[state.currentQuestionIndex] = "wrong";
+        feedbackEl.className = "feedback wrong";
+        feedbackEl.textContent = `✕ The answer is ${question.quantity}.`;
+        selectedEl.classList.add("dimmed");
+        playSound("wrong");
+      }
+
+      renderSnake();
+
+      state.autoAdvanceTimer = setTimeout(() => {
+        playSound("page");
+        goToNextQuestion();
+      }, 1500);
+    }
+
+    function disableAllChoices() {
+      const choices = Array.from(answersEl.querySelectorAll("button"));
+      choices.forEach((choice) => {
+        choice.disabled = true;
+      });
+    }
+
+    function markCorrectChoice(correctValue) {
+      const choices = Array.from(answersEl.querySelectorAll("button"));
+      choices.forEach((choice) => {
+        const value = Number(choice.dataset.value);
+        if (value === correctValue) {
+          choice.classList.add("correct-choice");
+        } else {
+          choice.classList.add("dimmed");
+        }
+      });
+    }
+
+    function goToNextQuestion() {
+      clearAutoAdvanceTimer();
+      stopSpeech();
+
+      if (state.currentQuestionIndex < GAME_CONFIG.questionsPerLevel - 1) {
+        state.currentQuestionIndex += 1;
+        renderQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    /* =========================================================
+       10. SNAKE TRACKER
+       ========================================================= */
+
+    function renderSnake() {
+      snakeEl.innerHTML = "";
+
+      const head = document.createElement("div");
+      head.className = "snake-head";
+      snakeEl.appendChild(head);
+
+      for (let i = 0; i < GAME_CONFIG.questionsPerLevel; i++) {
+        const segment = document.createElement("div");
+        segment.className = "snake-segment";
+
+        if (i === state.currentQuestionIndex && !state.answered) {
+          segment.classList.add("current");
+        }
+
+        if (state.snakeResults[i] === "correct") {
+          segment.classList.add("correct");
+          segment.textContent = "✓";
+        } else if (state.snakeResults[i] === "wrong") {
+          segment.classList.add("wrong");
+          segment.textContent = "✕";
+        }
+
+        snakeEl.appendChild(segment);
+      }
+    }
+
+    /* =========================================================
+       11. RESULT SCREEN
+       ========================================================= */
+
+    function showResult() {
+      stopSpeech();
+      playSound("complete");
+
+      const score = state.score;
+      const total = GAME_CONFIG.questionsPerLevel;
+
+      scoreBox.textContent = `You got ${score} / ${total}`;
+
+      if (score === 10) {
+        resultEmoji.textContent = "🏆";
+        resultTitle.textContent = "Perfect!";
+        resultMessage.textContent = "Amazing counting!";
+      } else if (score >= 7) {
+        resultEmoji.textContent = "🌟";
+        resultTitle.textContent = "Great job!";
+        resultMessage.textContent = "You did very well!";
+      } else if (score >= 4) {
+        resultEmoji.textContent = "😊";
+        resultTitle.textContent = "Good try!";
+        resultMessage.textContent = "Keep counting and try again!";
+      } else {
+        resultEmoji.textContent = "💪";
+        resultTitle.textContent = "Keep going!";
+        resultMessage.textContent = "You can practise again!";
+      }
+
+      showScreen("result");
+    }
+
+    /* =========================================================
+       12. SPEECH SYNTHESIS
+       ========================================================= */
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+
+      try {
+        stopSpeech();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = GAME_CONFIG.speechRate;
+        utterance.pitch = GAME_CONFIG.speechPitch;
+        utterance.volume = 1;
+
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice =
+          voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en") && /female|samantha|victoria|karen|zira|susan/i.test(v.name)) ||
+          voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+          null;
+
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        window.speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.warn("Speech failed:", error);
+      }
+    }
+
+    function stopSpeech() {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    /* =========================================================
+       13. BUILT-IN SOUND EFFECTS
+       ========================================================= */
+
+    function unlockAudio() {
+      if (!GAME_CONFIG.enableSoundEffects) return;
+
+      try {
+        if (!state.audioContext) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            state.audioContext = new AudioContext();
+          }
+        }
+
+        if (state.audioContext && state.audioContext.state === "suspended") {
+          state.audioContext.resume();
+        }
+      } catch (error) {
+        console.warn("Audio unlock failed:", error);
+      }
+    }
+
+    function playSound(type) {
+      if (!GAME_CONFIG.enableSoundEffects) return;
+
+      unlockAudio();
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      if (type === "correct") {
+        // V6-style victory fanfare + sparkle-pop effects, played twice for stronger reward feedback.
+        playCorrectRewardSound();
+        setTimeout(() => playCorrectRewardSound(), 430);
+      } else if (type === "wrong") {
+        // Stronger wrong-answer buzzer. Clear, longer, and easier to hear.
+        playWrongBuzzer();
+      } else if (type === "page") {
+        playToneSequence([
+          { freq: 392.00, duration: 0.045 },
+          { freq: 587.33, duration: 0.06 }
+        ], 0.08);
+      } else if (type === "complete") {
+        playLevelCompleteSound();
+      }
+    }
+
+    function playLevelCompleteSound() {
+      // Distinct finish sound: five gentle bell/chime phrases, different from the normal correct-answer sound.
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => playFinishBell(i), i * 260);
+      }
+    }
+
+    function playFinishBell(step = 0) {
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const baseFreqs = [740, 880, 988, 1175, 1320];
+      const freq = baseFreqs[step % baseFreqs.length];
+
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = "sine";
+      osc2.type = "sine";
+
+      osc1.frequency.setValueAtTime(freq, now);
+      osc2.frequency.setValueAtTime(freq * 1.5, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.20, now + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.20);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.22);
+      osc2.stop(now + 0.22);
+    }
+
+    function playCorrectRewardSound() {
+      playToneSequence([
+        { freq: 523.25, duration: 0.055 },
+        { freq: 659.25, duration: 0.055 },
+        { freq: 783.99, duration: 0.075 },
+        { freq: 1046.50, duration: 0.085 },
+        { freq: 1567.98, duration: 0.18 }
+      ], 0.24);
+
+      setTimeout(() => playSparklePop(0.16, 950), 55);
+      setTimeout(() => playSparklePop(0.14, 1250), 130);
+      setTimeout(() => playSparklePop(0.12, 1650), 215);
+      setTimeout(() => playClapPop(0.12), 295);
+    }
+
+    function playSparklePop(volume = 0.16, frequency = 1200) {
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(frequency, now);
+      osc.frequency.exponentialRampToValueAtTime(frequency * 1.55, now + 0.055);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+
+    function playWrongBuzzer() {
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+
+      // Main buzzer tone.
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = "square";
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.setValueAtTime(135, now + 0.16);
+      osc.frequency.setValueAtTime(110, now + 0.32);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.28, now + 0.015);
+      gain.gain.setValueAtTime(0.28, now + 0.34);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.5);
+
+      // Extra low thud to make the error easier to notice.
+      setTimeout(() => {
+        const thud = ctx.createOscillator();
+        const thudGain = ctx.createGain();
+
+        thud.type = "triangle";
+        thud.frequency.setValueAtTime(95, ctx.currentTime);
+
+        thudGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        thudGain.gain.exponentialRampToValueAtTime(0.20, ctx.currentTime + 0.01);
+        thudGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.16);
+
+        thud.connect(thudGain);
+        thudGain.connect(ctx.destination);
+
+        thud.start();
+        thud.stop(ctx.currentTime + 0.18);
+      }, 120);
+    }
+
+    function playClapPop(volume = 0.14) {
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      const bufferSize = Math.floor(ctx.sampleRate * 0.045);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+        const decay = 1 - i / bufferSize;
+        data[i] = (Math.random() * 2 - 1) * decay;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 1400;
+      filter.Q.value = 0.8;
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(volume, ctx.currentTime + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start();
+      noise.stop(ctx.currentTime + 0.055);
+    }
+
+    function playSoftPop() {
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.055);
+
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.075);
+
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.09);
+    }
+
+    function playToneSequence(notes, volume) {
+      const ctx = state.audioContext;
+      if (!ctx) return;
+
+      let startTime = ctx.currentTime;
+
+      notes.forEach((note) => {
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(note.freq, startTime);
+
+        gain.gain.setValueAtTime(0.0001, startTime);
+        gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + note.duration);
+
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + note.duration + 0.02);
+
+        startTime += note.duration + 0.025;
+      });
+    }
+
+    /* =========================================================
+       14. UTILITY FUNCTIONS
+       ========================================================= */
+
+    function getCurrentQuestion() {
+      return state.questions[state.currentQuestionIndex] || null;
+    }
+
+    function getRandomObject() {
+      return OBJECTS[Math.floor(Math.random() * OBJECTS.length)];
+    }
+
+    function range(min, max) {
+      const arr = [];
+      for (let i = min; i <= max; i++) arr.push(i);
+      return arr;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    /* =========================================================
+       15. INITIAL RENDER
+       ========================================================= */
+
+    renderSnake();
+  </script>
+</body>
+</html>
